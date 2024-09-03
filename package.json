@@ -70,5 +70,6 @@
 		"*.{astro,js,jsx,ts,tsx,md,mdx,json}": [
 			"prettier --write --plugin-search-dir=."
 		]
-	}
+	},
+	"packageManager": "pnpm@9.9.0"
 }
