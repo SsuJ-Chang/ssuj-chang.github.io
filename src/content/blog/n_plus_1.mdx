@@ -1,0 +1,100 @@
+---
+title: '惱人的 N + 1'
+description: '無腦 includes 應該沒問題 XDD'
+pubDate: 'Sep 06 2024'
+heroImage: '../../assets/images/n_plus_1.jpg'
+category: 'TECH'
+tags: ['Rails', 'ORM', 'Backend']
+---
+
+2022 年剛從 [WeHelp](https://wehelp.tw/) 轉職訓練畢業，完全沒碰過 [ORM（Object Relational Mapping）](https://zh.wikipedia.org/zh-tw/%E5%AF%B9%E8%B1%A1%E5%85%B3%E7%B3%BB%E6%98%A0%E5%B0%84)，所以當然沒聽過 **_N + 1_**。
+來到公司用 [Ruby on Rails](https://rubyonrails.org/) 就被提醒要注意這個問題，然後查很多次都還是模模糊糊不太確定是什麼。
+發 PR 也不時偶爾會被點到可能會發生要修掉。
+終於，2 年後再做一次筆記，應該有比較懂了，所以就來分享順便再加強自己的理解。
+
+## 什麼是 N + 1
+
+**_N + 1 指的是 SQL 撈資料時，明明可以一次撈完（ex: 3 筆資料），卻使用逐筆撈資料的方式處理（每次只撈 1 筆資料）。_**
+
+以上這句話是我消化過重整的，不過我想第一次看到的人，可能還是會有點霧煞煞......
+
+舉例來說，假如有`Post`和`User`這 2 個模型，是「**一對多**」的關係，當查詢總共 3 個`user`的`posts`資料會這樣撈資料。
+
+```ruby
+users = User.all
+users.each { |user| puts user.posts }
+```
+
+可以看到 SQL 會是這樣：
+
+- 先取得所有的 posts，這是 1。
+
+```sql
+SELECT * FROM users;
+```
+
+- **再用 user_id 將其逐筆取出，這是 N。**
+
+```sql
+SELECT * FROM posts WHERE posts.user_id = 1;
+SELECT * FROM posts WHERE posts.user_id = 2;
+SELECT * FROM posts WHERE posts.user_id = 3;
+```
+
+所以當使用者越多 N 就會越多，這對效能會產生很大的問題。
+
+## 如何解決
+
+先說結論，用`includes`應該是萬解吧......XD
+
+所以上面程式碼加入後
+
+```ruby
+users = User.includes(:posts).all
+users.each { |user| puts user.posts }
+```
+
+SQL 就變成 1 + 1 了呢！
+
+```sql
+SELECT * FROM users;
+SELECT * FROM posts WHERE posts.user_id IN (1, 2, 3);
+```
+
+**_關鍵就在`IN (1, 2, 3)`_**
+
+## `includes`
+
+Rails 會根據情境決定如何最有效地預加載（eagar loading）關聯。
+如果你只是使用了`includes`，而沒有指定任何條件，那麼 Rails 會使用兩次查詢：一次查詢主模型，然後另一次查詢關聯模型。
+但是，如果你給`includes`提供了條件或其他的查詢方法（例如`where`），那麼 Rails 可能會選擇使用`eager_load`的方法。
+
+- 優點：可以適應不同的情境，給出最佳的查詢策略。
+- 缺點：除非明確指定，否則不能確定 Rails 會使用哪種策略。
+
+實際使用中，如果你知道查詢策略並且你已經確定了哪一種策略對你的情況最有效，那麼你可以選擇使用`eager_load`或`preload`（類似於`includes`，但始終使用兩次查詢）來明確指定策略。
+但是，如果你不確定，那麼使用`includes`是一個很好的起點，因為它允許 Rails 為你選擇最佳策略。
+
+## 其他解法
+
+除了`includes`，在 Rails 還有另外 2 種作法可解決 N + 1：
+
+- `preload`
+- `eager_load`
+
+### preload
+
+`preload`的和上面`include`的舉例結果會一模一樣，但不會使用`JOIN`。
+
+### eagar_load
+
+惰性載入（lazy loading），使用一個`LEFT OUTER JOIN`來取得所有的資料。這意味著只有一次查詢就可以獲取主模型和關聯模型的資料。
+
+- 優點：只需要一次資料庫查詢。
+- 缺點：如果關聯的數據量很大，這個查詢可能會變得很複雜且效率不高。
+
+## 結論
+
+- `includes`：靈活的查詢方法，具體生成的 SQL 取決於查詢的內容。它可能生成兩個查詢，也可能生成`LEFT OUTER JOIN`或`INNER JOIN`。
+- `eager_load`：總是生成一個包含`LEFT OUTER JOIN`的單一查詢，用於強制載入所有關聯資料。
+- `preload`：總是生成多個獨立的查詢，不使用`JOIN`。適合在不需要根據關聯表的資料進行過濾或排序的場景下使用。
