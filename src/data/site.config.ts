@@ -10,8 +10,8 @@ interface SiteConfig {
 
 export const siteConfig: SiteConfig = {
 	author: 'RJ', // Site author
-	title: "RJ's Blog", // Site title.
-	description: '測試網站敘述', // Description to display in the meta tags
+	title: 'RJ Wanna Say Something', // Site title.
+	description: 'Just for fun!', // Description to display in the meta tags
 	lang: 'en-GB',
 	ogLocale: 'en_GB',
 	shareMessage: 'Share this post', // Message to share a post on social media
