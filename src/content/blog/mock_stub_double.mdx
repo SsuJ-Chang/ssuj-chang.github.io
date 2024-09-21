@@ -1,0 +1,65 @@
+---
+title: 'Mock、Stub 與 Double'
+description: '初心者的我傻傻分不清楚'
+pubDate: 'Sep 21 2024'
+heroImage: '../../assets/images/unit_test.jpg'
+category: 'TECH'
+tags: ['Unit Test', 'Backend']
+---
+
+## 前言
+
+寫測試這件事情，2022 年在 [WeHelp](https://wehelp.tw/) 轉職訓練時是全然不了解。
+進了公司後還記得很快就聽到前輩們分享寫測試的重要性，以及後端被要求一定要寫測試來保護你的程式碼，所以就不得不逼自己了解怎麼寫測試了。
+不過這篇不是要介紹「[單元測試（Unit Test）](https://aws.amazon.com/tw/what-is/unit-testing/)」而是是因為開始工作到現在，
+都搞不太懂這 3 個名詞，花了點時間研究後做點整理，算是做筆記也看能不能幫助想了解的人用較簡單的方式理解，
+以下舉例會用 [Ruby on Rails](https://rubyonrails.org/) 的 [RSpec](https://rspec.info/) 做說明。
+
+## Mock
+
+用來驗證程式碼是否執行了預期的操作，通常應用在測試流程中會確定特定動作是否發生。
+簡言之不僅模擬方法的行為，還會檢查這個方法是否在測試中被呼叫，並且可以驗證呼叫的次數、參數等。
+寫測試很直覺的主要應該都在做這件事。
+
+以下我們「預期」 `User.find(1)` 一定會被呼叫，並且會回傳 `user` 物件，即找到 `id` 為 1 的 `User`。
+如果這個方法沒有被呼叫，測試就會失敗。
+
+```ruby
+expect(User).to receive(:find).with(1).and_return(user)
+```
+
+## Stub
+
+**為了減少測試的依賴性**。
+當一個方法或模組依賴外部系統（如 API、資料庫查詢等）時，為了避免測試過程受這些依賴影響，可以用 stub 來模擬行為。
+白話點就是模擬一個物件的方法，且我們不關心這個方法的具體行為，只是需要一個預設的回傳值時，就會使用 stub。
+
+以下我們定義當 `User.find(1)` 被呼叫時，會返回 `user` 物件，而不會真的去資料庫查詢。
+
+```ruby
+allow(User).to receive(:find).with(1).and_return(user)
+```
+
+## Double
+
+用於提供測試中的靈活性和避免依賴真實物件，尤其是在被測試物件有複雜邏輯或需要多次呼叫不同方法時。
+即一個模擬物件包含測試所需的屬性，用來替代實際的物件，並允許你定義多個方法的 stub 行為。
+
+以下 `user_double` 是一個模擬的 `User` 物件，當呼叫 `name` 或 `age` 時，會回傳對應的值；呼叫 `greet` 時會回傳 `'Hello'`。
+
+```ruby
+user_double = double('User', name: 'RJ', age: 18)
+allow(user_double).to receive(:greet).and_return('Hello')
+```
+
+## 結論
+
+這三者的使用有助於在開發過程中維持測試的「可預測性」和「獨立性」。
+有效地使用這些技術，能夠讓測試更加專注於邏輯本身而非外部依賴，讓測試變得更可靠、更快速。
+此概念通用於所有語言和框架的測試中。
+
+- Mock：驗證某個動作是否如設計般被執行，關注的是**_行為是否發生_**。
+- Stub：提供假資料或行為，用以**_代替測試中不需要真實執行的過程或外部依賴_**。
+- Double：完全模擬一個物件（object），包括屬性（attribute）和方法（method），以**_完全取代測試中的真實物件_**。
+
+> 不過我目前為止印象中很少用到 double...，原因我也不清楚 XDD
