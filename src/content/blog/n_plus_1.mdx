@@ -27,13 +27,13 @@ users.each { |user| puts user.posts }
 
 可以看到 SQL 會是這樣：
 
-- 先取得所有的 posts，這是 1。
+- 先取得所有的 `users`，這是 1。
 
 ```sql
 SELECT * FROM users;
 ```
 
-- **再用 user_id 將其逐筆取出，這是 N。**
+- **再用 user_id 將逐筆取出每個 `user` 的 `posts`，這是 N。**
 
 ```sql
 SELECT * FROM posts WHERE posts.user_id = 1;
