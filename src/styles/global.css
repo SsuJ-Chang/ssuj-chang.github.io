@@ -3,6 +3,24 @@
 @tailwind utilities;
 
 @layer base {
+	/* Morandi Turquoise Theme Variables */
+	:root {
+		--color-bg-primary: #0f171a;
+		--color-bg-secondary: #162124;
+		--color-bg-tertiary: #1e2b2e;
+		
+		--color-accent-primary: #5e8c8a;
+		--color-accent-secondary: #87adaa;
+		--color-accent-tertiary: #a5c1be;
+		
+		--color-text-primary: #e0e6e6;
+		--color-text-secondary: #9db0b0;
+		--color-text-muted: #6b7d7d;
+		
+		--gradient-primary: linear-gradient(135deg, #5e8c8a 0%, #87adaa 50%, #a5c1be 100%);
+		--gradient-subtle: linear-gradient(135deg, rgba(94, 140, 138, 0.1) 0%, rgba(135, 173, 170, 0.1) 100%);
+	}
+
 	/* body {
 		transition: background-color 0.5s ease;
 	} */

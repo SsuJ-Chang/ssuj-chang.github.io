@@ -7,7 +7,25 @@ module.exports = {
 	theme: {
 		extend: {
 			colors: {
-				white: '#f8f9fa'
+				white: '#f8f9fa',
+			// Morandi Turquoise Theme (from suguru project)
+			morandi: {
+				bg: {
+					primary: '#0f171a',
+					secondary: '#162124',
+					tertiary: '#1e2b2e',
+				},
+				accent: {
+					primary: '#5e8c8a',
+					secondary: '#87adaa',
+					tertiary: '#a5c1be',
+				},
+				text: {
+					primary: '#e0e6e6',
+					secondary: '#9db0b0',
+					muted: '#6b7d7d',
+				}
+			}
 			},
 			fontFamily: {
 				body: ['Manrope', ...defaultTheme.fontFamily.sans]
